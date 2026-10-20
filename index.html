@@ -139,13 +139,13 @@
   }
   .canvas.has-items .empty-hint-callout{display:none;}
   .empty-hint-tools{
-    left:62px;
+    left:68px;
     top:50%;
     transform:translateY(-50%);
   }
   .empty-hint-category{
     left:50%;
-    bottom:92px;
+    bottom:78px;
     transform:translateX(-50%);
     text-align:center;
   }
@@ -282,7 +282,7 @@
     flex-direction:column;
     gap:10px;
   }
-  .person-name-panel input, .person-name-panel textarea{
+  .person-name-panel input, .person-name-panel textarea, .person-name-panel select{
     width:100%;
     font-family:'Space Mono', monospace;
     font-size:0.8rem;
@@ -294,7 +294,26 @@
     resize:vertical;
     line-height:1.4;
   }
-  .person-name-panel input:focus-visible, .person-name-panel textarea:focus-visible{outline:2px solid var(--fg); outline-offset:1px;}
+  .person-name-panel input:focus-visible, .person-name-panel textarea:focus-visible, .person-name-panel select:focus-visible{outline:2px solid var(--fg); outline-offset:1px;}
+
+  /* "bestaat al" melding in het +-bouwsteen-paneel: toont de bestaande bouwsteen zelf
+     als sleepbaar item, zodat je 'm meteen vanaf hier het canvas op kunt slepen */
+  .new-item-match{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:8px;
+    padding:10px;
+    border:1px dashed var(--border);
+    border-radius:10px;
+    text-align:center;
+  }
+  .new-item-match-text{
+    font-family:'Space Mono', monospace;
+    font-size:0.72rem;
+    color:var(--fg-muted);
+    line-height:1.4;
+  }
 
   /* het uitschuifmenu naast de personen-tool: kies een al eerder gemaakte persoon
      (bv. "moeder") om opnieuw neer te zetten, of maak een nieuwe aan */
@@ -706,8 +725,50 @@
   .category-bar-wrap{
     display:flex;
     justify-content:center;
+    align-items:center;
+    gap:8px;
     margin-top:8px;
   }
+  /* los knopje naast de bouwstenenbank om een eigen bouwsteen aan te maken: de knop zelf
+     is rond (zoals de andere losse knoppen), met daarbinnen een hexagon-met-plusje icoon
+     zodat je 'm meteen aan de bouwstenenbank koppelt */
+  .add-item-btn{
+    flex:none;
+    width:38px;height:38px;
+    border-radius:50%;
+    border:1px solid var(--border);
+    padding:0;
+    background:var(--bg);
+    color:var(--fg-muted);
+    cursor:pointer;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .add-item-btn svg{width:20px;height:20px;}
+  .add-item-btn:hover{background:var(--surface); color:var(--fg); border-color:var(--fg-muted);}
+  .add-item-btn:focus-visible{outline:2px solid var(--fg); outline-offset:2px;}
+
+  /* suggesties terwijl je typt in het +-bouwsteen-paneel */
+  .new-item-suggestions{
+    display:flex;
+    flex-direction:column;
+    gap:4px;
+  }
+  .new-item-suggestion{
+    text-align:left;
+    font-family:'Space Mono', monospace;
+    font-size:0.74rem;
+    padding:7px 9px;
+    border:1px solid var(--border);
+    border-radius:8px;
+    background:var(--bg);
+    color:var(--fg);
+    cursor:pointer;
+    display:flex;
+    justify-content:space-between;
+    gap:8px;
+  }
+  .new-item-suggestion:hover{background:var(--surface); border-color:var(--fg-muted);}
+  .new-item-suggestion .suggestion-cat{color:var(--fg-muted); font-size:0.66rem; flex:none;}
   .category-bar{
     display:flex;
     align-items:center;
@@ -894,8 +955,8 @@
     <div class="edge-handles-layer" id="edgeHandlesLayer"></div>
   </div>
   <div class="empty-hint">Sleep hieronder een bouwsteen naar het canvas om te beginnen. Versleep de lege ruimte om rond te kijken, en knijp of scroll om te zoomen.</div>
-  <div class="empty-hint-callout empty-hint-tools">&larr; Deze tools helpen je betekenis te vinden in wat er al ligt.</div>
-  <div class="empty-hint-callout empty-hint-category">Het categoriemenu helpt je bouwen. &darr;</div>
+  <div class="empty-hint-callout empty-hint-tools">&larr; 2. Met deze tools geef je betekenis aan de relaties en de diepere laag tussen bouwstenen.</div>
+  <div class="empty-hint-callout empty-hint-category">1. De bouwstenenbank helpt je bouwen. &darr;</div>
   <div class="tool-controls">
     <button type="button" class="tool-btn" id="connectToolBtn" aria-pressed="false" aria-label="Verbind-tool: sleep een pijl vanaf een kant van een bouwsteen naar een andere" data-tooltip="Verbind: trek een pijl tussen twee bouwstenen">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -970,6 +1031,26 @@
       <div class="group-note-actions-right">
         <button type="button" class="btn btn-small" id="placeNameCancel">Annuleren</button>
         <button type="button" class="btn btn-small btn-primary" id="placeNameSave">Opslaan</button>
+      </div>
+    </div>
+  </div>
+  <div class="person-name-panel" id="newItemPanel" hidden>
+    <input type="text" id="newItemNameInput" placeholder="Naam van de nieuwe bouwsteen">
+    <div class="new-item-suggestions" id="newItemSuggestions" hidden></div>
+    <select id="newItemCategorySelect">
+      <option value="lijf">Lijf</option>
+      <option value="jij">Jij</option>
+      <option value="anderen">Anderen</option>
+      <option value="omgeving">Omgeving</option>
+      <option value="krachten">Krachten</option>
+    </select>
+    <div class="new-item-match" id="newItemMatch" hidden>
+      <div class="new-item-match-text" id="newItemMatchText"></div>
+    </div>
+    <div class="group-note-actions">
+      <div class="group-note-actions-right" style="margin-left:0;">
+        <button type="button" class="btn btn-small" id="newItemCancel">Annuleren</button>
+        <button type="button" class="btn btn-small btn-primary" id="newItemCreate">Aanmaken</button>
       </div>
     </div>
   </div>
@@ -1054,6 +1135,12 @@
         <span class="category-text">Krachten</span>
       </button>
     </div>
+    <button type="button" class="add-item-btn" id="addItemBtn" aria-label="Nieuwe bouwsteen aanmaken">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M7 2h10l5 10-5 10H7L2 12Z"/>
+        <path d="M12 8v8M8 12h8"/>
+      </svg>
+    </button>
   </div>
 </div>
 
@@ -1130,6 +1217,20 @@
   // uitlichten: dimt de rest van het canvas en licht alleen de gekozen persoon of plek uit
   var spotlight = null; // null of {type:'person'|'place', id}
 
+  // eigen bouwstenen: een los register naast de vaste CATEGORY_ITEMS, bewaard onder een
+  // eigen sleutel zodat ze blijven bestaan ook als het canvas zelf gewist wordt
+  var addItemBtn = document.getElementById('addItemBtn');
+  var newItemPanel = document.getElementById('newItemPanel');
+  var newItemNameInput = document.getElementById('newItemNameInput');
+  var newItemSuggestions = document.getElementById('newItemSuggestions');
+  var newItemCategorySelect = document.getElementById('newItemCategorySelect');
+  var newItemMatch = document.getElementById('newItemMatch');
+  var newItemMatchText = document.getElementById('newItemMatchText');
+  var newItemCancel = document.getElementById('newItemCancel');
+  var newItemCreate = document.getElementById('newItemCreate');
+  var CUSTOM_ITEMS_KEY = 'bouwstenen-eigen-items-v1';
+  var customItems = { lijf: [], jij: [], anderen: [], omgeving: [], krachten: [] };
+
   function isOverTrash(x, y){
     if (trashZone.classList.contains('suppressed')) return false;
     var r = trashZone.getBoundingClientRect();
@@ -1140,7 +1241,7 @@
   function updateTrashVisibility(){
     var anyOpen = !!openCategory || !patternsModal.hidden || !groupNotePanel.hidden ||
       !personNamePanel.hidden || !groupToolbar.hidden || personPickerOpen ||
-      plekPickerOpen || !placeNamePanel.hidden;
+      plekPickerOpen || !placeNamePanel.hidden || !newItemPanel.hidden;
     trashZone.classList.toggle('suppressed', anyOpen);
   }
 
@@ -1298,13 +1399,13 @@
   // existing call sites don't need to change.
   function updateDockOffset(){}
 
-  function makeItemHex(cat, label){
+  function makeItemHex(cat, label, isCustom){
     var el = document.createElement('div');
     el.className = 'hex source item';
     el.dataset.cat = cat;
-    el.dataset.label = label;
+    el.dataset.label = label; // plain label, zonder "+" — dit is wat er op het canvas komt
     el.setAttribute('draggable', 'false');
-    el.textContent = label;
+    el.textContent = isCustom ? ('+ ' + label) : label;
     return el;
   }
 
@@ -1318,6 +1419,7 @@
     // each sub-category then gets its own labeled, visually separated row
     var grouped = items.length > 0 && typeof items[0] === 'object';
     itemPanelGrid.classList.toggle('grouped', grouped);
+    var ownItems = customItems[cat] || [];
     if (grouped){
       items.forEach(function(g){
         var groupEl = document.createElement('div');
@@ -1337,9 +1439,34 @@
         groupEl.appendChild(row);
         itemPanelGrid.appendChild(groupEl);
       });
+      // eigen toevoegingen komen los onderaan te staan, niet in een bestaande subgroep
+      if (ownItems.length){
+        var ownGroupEl = document.createElement('div');
+        ownGroupEl.className = 'item-group';
+        var ownLabel = document.createElement('div');
+        ownLabel.className = 'item-group-label';
+        ownLabel.textContent = 'eigen toevoegingen';
+        ownGroupEl.appendChild(ownLabel);
+        var ownRow = document.createElement('div');
+        ownRow.className = 'item-group-row';
+        ownItems.forEach(function(itemLabel){
+          var el = makeItemHex(cat, itemLabel, true);
+          ownRow.appendChild(el);
+          fitHexText(el);
+          wireSource(el);
+        });
+        ownGroupEl.appendChild(ownRow);
+        itemPanelGrid.appendChild(ownGroupEl);
+      }
     } else {
       items.forEach(function(itemLabel){
         var el = makeItemHex(cat, itemLabel);
+        itemPanelGrid.appendChild(el);
+        fitHexText(el);
+        wireSource(el);
+      });
+      ownItems.forEach(function(itemLabel){
+        var el = makeItemHex(cat, itemLabel, true);
         itemPanelGrid.appendChild(el);
         fitHexText(el);
         wireSource(el);
@@ -1352,6 +1479,169 @@
     setTimeout(updateDockOffset, 260);
     updateTrashVisibility();
   }
+
+  // zoekt een bouwsteen (vast of eigen) op naam, ongeacht categorie — hoofdletter-
+  // en spatie-ongevoelig, zodat "Piekeren" en "piekeren " hetzelfde tellen
+  function normalizeItemLabel(s){ return (s || '').trim().toLowerCase(); }
+
+  function findExistingItem(label){
+    var needle = normalizeItemLabel(label);
+    if (!needle) return null;
+    var cats = Object.keys(CATEGORY_ITEMS);
+    for (var i = 0; i < cats.length; i++){
+      var cat = cats[i];
+      var items = CATEGORY_ITEMS[cat];
+      for (var j = 0; j < items.length; j++){
+        if (typeof items[j] === 'object'){
+          for (var k = 0; k < items[j].items.length; k++){
+            if (normalizeItemLabel(items[j].items[k]) === needle){
+              return { cat: cat, label: items[j].items[k] };
+            }
+          }
+        } else if (normalizeItemLabel(items[j]) === needle){
+          return { cat: cat, label: items[j] };
+        }
+      }
+    }
+    for (var c2 = 0; c2 < cats.length; c2++){
+      var own = customItems[cats[c2]] || [];
+      for (var m = 0; m < own.length; m++){
+        if (normalizeItemLabel(own[m]) === needle){
+          return { cat: cats[c2], label: own[m] };
+        }
+      }
+    }
+    return null;
+  }
+
+  function loadCustomItems(){
+    try{
+      var raw = localStorage.getItem(CUSTOM_ITEMS_KEY);
+      if (!raw) return;
+      var data = JSON.parse(raw);
+      Object.keys(customItems).forEach(function(cat){
+        if (Array.isArray(data[cat])) customItems[cat] = data[cat];
+      });
+    } catch(e){ /* corrupte of ontbrekende opslag — gewoon leeg beginnen */ }
+  }
+
+  function saveCustomItems(){
+    try{ localStorage.setItem(CUSTOM_ITEMS_KEY, JSON.stringify(customItems)); } catch(e){ /* opslag kan vol of geblokkeerd zijn */ }
+  }
+
+  var CATEGORY_LABELS = { lijf: 'Lijf', jij: 'Jij', anderen: 'Anderen', omgeving: 'Omgeving', krachten: 'Krachten' };
+
+  // alle bouwsteen-labels (vast + eigen) met hun categorie, plat, voor zoeken op naam
+  function allItemsFlat(){
+    var out = [];
+    Object.keys(CATEGORY_ITEMS).forEach(function(cat){
+      CATEGORY_ITEMS[cat].forEach(function(entry){
+        if (typeof entry === 'object') entry.items.forEach(function(label){ out.push({ cat: cat, label: label }); });
+        else out.push({ cat: cat, label: entry });
+      });
+    });
+    Object.keys(customItems).forEach(function(cat){
+      (customItems[cat] || []).forEach(function(label){ out.push({ cat: cat, label: label }); });
+    });
+    return out;
+  }
+
+  // vanaf drie letters: bouwstenen die de getypte tekst ergens bevatten, los van de
+  // exacte match hierboven (die dekt alleen een volledig identieke naam)
+  function findSuggestions(query, limit){
+    var needle = normalizeItemLabel(query);
+    if (needle.length < 3) return [];
+    var startsWith = [], contains = [];
+    allItemsFlat().forEach(function(it){
+      var norm = normalizeItemLabel(it.label);
+      if (norm === needle) return; // exacte match wordt elders al getoond
+      if (norm.indexOf(needle) === 0) startsWith.push(it);
+      else if (norm.indexOf(needle) > -1) contains.push(it);
+    });
+    return startsWith.concat(contains).slice(0, limit || 6);
+  }
+
+  function updateNewItemMatch(){
+    var name = newItemNameInput.value.trim();
+    newItemMatch.innerHTML = '';
+    newItemMatch.hidden = true;
+    newItemSuggestions.innerHTML = '';
+    newItemSuggestions.hidden = true;
+    newItemCreate.disabled = !name;
+    if (!name) return;
+    var existing = findExistingItem(name);
+    if (existing){
+      newItemMatch.hidden = false;
+      newItemCreate.disabled = true;
+      var text = document.createElement('div');
+      text.className = 'new-item-match-text';
+      text.textContent = 'Bestaat al bij ' + (CATEGORY_LABELS[existing.cat] || existing.cat) + ' — sleep hem zo naar het canvas:';
+      newItemMatch.appendChild(text);
+      var chip = makeItemHex(existing.cat, existing.label);
+      newItemMatch.appendChild(chip);
+      fitHexText(chip);
+      wireSource(chip);
+      return;
+    }
+    var suggestions = findSuggestions(name, 6);
+    if (!suggestions.length) return;
+    newItemSuggestions.hidden = false;
+    suggestions.forEach(function(s){
+      var btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'new-item-suggestion';
+      var labelSpan = document.createElement('span');
+      labelSpan.textContent = s.label;
+      var catSpan = document.createElement('span');
+      catSpan.className = 'suggestion-cat';
+      catSpan.textContent = CATEGORY_LABELS[s.cat] || s.cat;
+      btn.appendChild(labelSpan);
+      btn.appendChild(catSpan);
+      btn.addEventListener('click', function(){
+        newItemNameInput.value = s.label;
+        updateNewItemMatch();
+        newItemNameInput.focus();
+      });
+      newItemSuggestions.appendChild(btn);
+    });
+  }
+
+  function openNewItemPanel(){
+    newItemNameInput.value = '';
+    newItemMatch.hidden = true;
+    newItemMatch.innerHTML = '';
+    newItemSuggestions.hidden = true;
+    newItemSuggestions.innerHTML = '';
+    newItemCreate.disabled = true;
+    newItemPanel.hidden = false;
+    updateTrashVisibility();
+    requestAnimationFrame(function(){ newItemNameInput.focus(); });
+  }
+
+  function closeNewItemPanel(){
+    newItemPanel.hidden = true;
+    newItemMatch.innerHTML = '';
+    newItemSuggestions.innerHTML = '';
+    updateTrashVisibility();
+  }
+
+  addItemBtn.addEventListener('click', function(){
+    if (!newItemPanel.hidden){ closeNewItemPanel(); return; }
+    openNewItemPanel();
+  });
+  newItemNameInput.addEventListener('input', updateNewItemMatch);
+  newItemCategorySelect.addEventListener('change', updateNewItemMatch);
+  newItemCancel.addEventListener('click', closeNewItemPanel);
+  newItemCreate.addEventListener('click', function(){
+    var name = newItemNameInput.value.trim();
+    if (!name || findExistingItem(name)) return;
+    var cat = newItemCategorySelect.value;
+    if (!customItems[cat]) customItems[cat] = [];
+    customItems[cat].push(name);
+    saveCustomItems();
+    closeNewItemPanel();
+    if (openCategory === cat) openCategoryPanel(cat);
+  });
 
   function closeCategoryPanel(){
     itemPanel.classList.remove('open');
@@ -2685,6 +2975,7 @@
       if (!groupNotePanel.hidden){ closeGroupNotePanel(); return; }
       if (!personNamePanel.hidden){ closePersonNamePanel(); return; }
       if (!placeNamePanel.hidden){ closePlaceNamePanel(); return; }
+      if (!newItemPanel.hidden){ closeNewItemPanel(); return; }
       if (personPickerOpen){ closePersonPicker(); return; }
       if (plekPickerOpen){ plekToolBtn.click(); return; }
       if (groupPick.length > 0 && !groupMode && !plekMode){ clearGroupPick(); return; }
@@ -3259,6 +3550,7 @@
 
   updateDockOffset();
   refreshGeom();
+  loadCustomItems();
   seedDemoPatternIfNeeded();
   var restored = loadState();
   if (!restored || !hasCenteredOnce) centerView();

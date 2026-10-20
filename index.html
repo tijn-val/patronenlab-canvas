@@ -1664,8 +1664,10 @@
     if (!customItems[cat]) customItems[cat] = [];
     customItems[cat].push(name);
     saveCustomItems();
-    closeNewItemPanel();
     if (openCategory === cat) openCategoryPanel(cat);
+    // paneel blijft open: de net aangemaakte bouwsteen verschijnt meteen als bestaande
+    // match, zodat je 'm meteen vanuit dit menu naar het canvas kunt slepen
+    updateNewItemMatch();
   });
 
   function closeCategoryPanel(){

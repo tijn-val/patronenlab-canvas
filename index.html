@@ -296,6 +296,26 @@
   }
   .person-name-panel input:focus-visible, .person-name-panel textarea:focus-visible, .person-name-panel select:focus-visible{outline:2px solid var(--fg); outline-offset:1px;}
 
+  /* select-pijltje: het ingebouwde browserpijltje staat te dicht tegen de rand aan op
+     veel platforms, dus die zetten we uit en tekenen we 'm zelf, met wat lucht ernaast */
+  .select-wrap{position:relative;}
+  .select-wrap select{
+    appearance:none;
+    -webkit-appearance:none;
+    -moz-appearance:none;
+    padding-right:34px;
+    cursor:pointer;
+  }
+  .select-wrap-chevron{
+    position:absolute;
+    top:50%;
+    right:12px;
+    width:15px;height:15px;
+    transform:translateY(-50%);
+    color:var(--fg-muted);
+    pointer-events:none;
+  }
+
   /* "bestaat al" melding in het +-bouwsteen-paneel: toont de bestaande bouwsteen zelf
      als sleepbaar item, zodat je 'm meteen vanaf hier het canvas op kunt slepen */
   .new-item-match{
@@ -1037,13 +1057,18 @@
   <div class="person-name-panel" id="newItemPanel" hidden>
     <input type="text" id="newItemNameInput" placeholder="Naam van de nieuwe bouwsteen">
     <div class="new-item-suggestions" id="newItemSuggestions" hidden></div>
-    <select id="newItemCategorySelect">
-      <option value="lijf">Lijf</option>
-      <option value="jij">Jij</option>
-      <option value="anderen">Anderen</option>
-      <option value="omgeving">Omgeving</option>
-      <option value="krachten">Krachten</option>
-    </select>
+    <div class="select-wrap">
+      <select id="newItemCategorySelect">
+        <option value="lijf">Lijf</option>
+        <option value="jij">Jij</option>
+        <option value="anderen">Anderen</option>
+        <option value="omgeving">Omgeving</option>
+        <option value="krachten">Krachten</option>
+      </select>
+      <svg class="select-wrap-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M6 9.5 12 15l6-5.5"/>
+      </svg>
+    </div>
     <div class="new-item-match" id="newItemMatch" hidden>
       <div class="new-item-match-text" id="newItemMatchText"></div>
     </div>
@@ -1137,7 +1162,7 @@
     </div>
     <button type="button" class="add-item-btn" id="addItemBtn" aria-label="Nieuwe bouwsteen aanmaken">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-        <path d="M7 2h10l5 10-5 10H7L2 12Z"/>
+        <path d="M6.5 2.5H17.5L23 12L17.5 21.5H6.5L1 12Z"/>
         <path d="M12 8v8M8 12h8"/>
       </svg>
     </button>
